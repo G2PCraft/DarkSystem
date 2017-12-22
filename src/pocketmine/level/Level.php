@@ -901,7 +901,7 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 				for($v->y = $minY - 1; $v->y < $maxY; ++$v->y){
 					$block = $this->getBlock($v);
 					if($block->getId() !== 0){
-						$block->collidesWithBB($bb, $collides);
+						$block->collidesWithBB($bb);
 					}
 				}
 			}
@@ -1580,34 +1580,33 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 		return $this->getChunk($x >> 4, $z >> 4, true)->getBlockId($x & 0x0f, $y & $this->getYMask(), $z & 0x0f);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $id 0-255
-	 */
+    /**
+     * @param $x
+     * @param $y
+     * @param $z
+     * @param $id
+     */
 	public function setBlockIdAt($x, $y, $z, $id){
 		unset($this->blockCache[Level::blockHash($x, $y, $z)]);
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockId($x & 0x0f, $y & $this->getYMask(), $z & 0x0f, $id & 0xff);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 *
-	 * @return int 0-15
-	 */
+    /**
+     * @param $x
+     * @param $y
+     * @param $z
+     * @return int
+     */
 	public function getBlockDataAt($x, $y, $z){
 		return $this->getChunk($x >> 4, $z >> 4, true)->getBlockData($x & 0x0f, $y & $this->getYMask(), $z & 0x0f);
 	}
 
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $data 0-15
-	 */
+    /**
+     * @param $x
+     * @param $y
+     * @param $z
+     * @param $data
+     */
 	public function setBlockDataAt($x, $y, $z, $data){
 		unset($this->blockCache[Level::blockHash($x, $y, $z)]);
 		$this->getChunk($x >> 4, $z >> 4, true)->setBlockData($x & 0x0f, $y & $this->getYMask(), $z & 0x0f, $data & 0x0f);
@@ -1797,13 +1796,13 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 		
 		$chunk->setChanged();
 	}
-	
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param Player $p
-	 */
+
+    /**
+     * @param $x
+     * @param $y
+     * @param $z
+     * @param Player $player
+     */
 	public function sendLighting($x, $y, $z, Player $player){
 		$pk = new AddEntityPacket();
 		$pk->type = Lightning::NETWORK_ID;
@@ -1974,7 +1973,7 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 				}
 				if($protocols !== []){
 					$this->chunkSendTasks[$index] = true;
-					$task = $this->provider->requestChunkTask($x, $z, $protocols, $subClientsId);
+					$task = $this->provider->requestChunkTask($x, $z);
 					if($task instanceof AsyncTask){
 						$this->server->getScheduler()->scheduleAsyncTask($task);
 					}
@@ -2202,9 +2201,10 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 		return $this->getSpawnLocation();
 	}
 
-	/**
-	 * @return bool|Position
-	 */
+    /**
+     * @param null $spawn
+     * @return bool|Position
+     */
 	public function getSafeSpawn($spawn = null){
 		if(!($spawn instanceof Vector3) || $spawn->y < 1){
 			$spawn = $this->getSpawnLocation();
@@ -2432,8 +2432,12 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 			$this->moveToSend[$playerIdentifier]['data'][] = $move;
 		}
 	}
-		
-	public function addPlayerHandItem($sender, $recipient){
+
+    /**
+     * @param Player $sender
+     * @param $recipient
+     */
+	public function addPlayerHandItem(Player $sender, $recipient){
 		if(!isset($this->playerHandItemQueue[$sender->getId()])){
 			$this->playerHandItemQueue[$sender->getId()] = [];
 		}
@@ -2444,7 +2448,7 @@ class Level extends TimeValues implements ChunkManager, Metadatable{
 		];
 	}
 	
-	public function mayAddPlayerHandItem($sender, $recipient){
+	public function mayAddPlayerHandItem(Player $sender, $recipient){
 		if(isset($this->playerHandItemQueue[$sender->getId()][$recipient->getId()])){
 			return false;
 		}
